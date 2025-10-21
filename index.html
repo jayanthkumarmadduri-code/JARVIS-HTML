@@ -3,10 +3,10 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Voice Assistant</title>
+  <title>JARVIS Voice Assistant</title>
   <style>
     body {
-      background: #121212;
+      background: #0e0e0e;
       color: white;
       font-family: "Poppins", sans-serif;
       display: flex;
@@ -15,39 +15,60 @@
       align-items: center;
       height: 100vh;
       margin: 0;
+      text-align: center;
     }
 
     h1 {
-      font-size: 2rem;
+      font-size: 2.5rem;
       margin-bottom: 1rem;
+      background: linear-gradient(to right, #00b3ff, #00ffcc);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      letter-spacing: 2px;
     }
 
     #content {
-      font-size: 1.3rem;
+      font-size: 1.2rem;
       margin: 1rem;
       color: #00ffcc;
+      background: rgba(255, 255, 255, 0.05);
+      padding: 1rem 2rem;
+      border-radius: 10px;
+      backdrop-filter: blur(10px);
+      box-shadow: 0 0 15px rgba(0, 255, 255, 0.1);
+      min-width: 300px;
     }
 
     #btn {
-      background: linear-gradient(to right, #4285f4, #d96570);
+      background: linear-gradient(to right, #0066ff, #00ffee);
       border: none;
       padding: 1rem 2rem;
-      font-size: 1.2rem;
-      border-radius: 8px;
+      font-size: 1.1rem;
+      border-radius: 6px;
       color: white;
       cursor: pointer;
       transition: 0.3s;
+      margin-top: 0.5rem;
     }
 
     #btn:hover {
-      opacity: 0.8;
+      opacity: 0.85;
+      transform: scale(1.05);
+    }
+
+    footer {
+      position: absolute;
+      bottom: 15px;
+      font-size: 0.9rem;
+      color: #888;
     }
   </style>
 </head>
 <body>
-  <h1>🎙️ Voice Assistant</h1>
+  <h1>🧠 JARVIS Assistant</h1>
   <p id="content">Click the button and speak...</p>
   <button id="btn">Start Listening</button>
+  <footer>Powered by Web Speech API</footer>
 
   <script>
     const btn = document.getElementById('btn');
@@ -55,67 +76,84 @@
 
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     const recognition = new SpeechRecognition();
+    recognition.lang = "en-US";
 
-    // Speech recognition result handler
-    recognition.onresult = (event) => {
-      const currentIndex = event.resultIndex;
-      const transcript = event.results[currentIndex][0].transcript;
-      content.textContent = transcript;
-      takeCommand(transcript.toLowerCase());
+    // --- Select Jarvis-like voice ---
+    let jarvisVoice = null;
+    window.speechSynthesis.onvoiceschanged = () => {
+      const voices = window.speechSynthesis.getVoices();
+      // Try to find a British male voice (Jarvis style)
+      jarvisVoice = voices.find(v =>
+        v.name.includes("Daniel") ||
+        v.name.includes("Male") ||
+        v.name.includes("Google UK English Male")
+      ) || voices[0];
     };
 
-    // Button click to start listening
+    // --- Function to speak in Jarvis voice ---
+    function speak(text) {
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.voice = jarvisVoice;
+      utterance.pitch = 0.9;
+      utterance.rate = 0.95;
+      utterance.volume = 1;
+      window.speechSynthesis.speak(utterance);
+    }
+
+    // --- Start Listening ---
     btn.addEventListener('click', () => {
-      content.textContent = "Listening...";
+      content.textContent = "🎧 Listening...";
       recognition.start();
     });
 
-    // Speak function using SpeechSynthesis
-    function speak(text) {
-      const speech = new SpeechSynthesisUtterance(text);
-      speech.pitch = 1;
-      speech.rate = 1;
-      window.speechSynthesis.speak(speech);
-    }
+    recognition.onresult = (event) => {
+      const currentIndex = event.resultIndex;
+      const transcript = event.results[currentIndex][0].transcript;
+      content.textContent = "You said: " + transcript;
+      takeCommand(transcript.toLowerCase());
+    };
 
-    // Command handler
+    // --- Command handler ---
     function takeCommand(message) {
       if (message.includes('hey') || message.includes('hello')) {
-        speak("Hello Sir, How May I Help You?");
-      } else if (message.includes("open google")) {
+        speak("Hello sir. How may I assist you?");
+      } 
+      else if (message.includes("open google")) {
         window.open("https://google.com", "_blank");
-        speak("Opening Google...");
-      } else if (message.includes("open youtube")) {
+        speak("Opening Google, sir.");
+      } 
+      else if (message.includes("open youtube")) {
         window.open("https://youtube.com", "_blank");
-        speak("Opening YouTube...");
-      } else if (message.includes("open facebook")) {
+        speak("Opening YouTube, sir.");
+      } 
+      else if (message.includes("open facebook")) {
         window.open("https://facebook.com", "_blank");
-        speak("Opening Facebook...");
-      } else if (message.includes('what is') || message.includes('who is') || message.includes('what are')) {
+        speak("Opening Facebook, sir.");
+      } 
+      else if (message.includes('what is') || message.includes('who is') || message.includes('what are')) {
         window.open(`https://www.google.com/search?q=${message.replace(/ /g, "+")}`, "_blank");
-        const finalText = "This is what I found on the internet regarding " + message;
-        speak(finalText);
-      } else if (message.includes('wikipedia')) {
+        speak("Here’s what I found on the internet, sir.");
+      } 
+      else if (message.includes('wikipedia')) {
         window.open(`https://en.wikipedia.org/wiki/${message.replace("wikipedia", "").trim()}`, "_blank");
-        const finalText = "This is what I found on Wikipedia regarding " + message;
-        speak(finalText);
-      } else if (message.includes('time')) {
+        speak("Accessing Wikipedia for your query, sir.");
+      } 
+      else if (message.includes('time')) {
         const time = new Date().toLocaleString(undefined, { hour: "numeric", minute: "numeric" });
-        const finalText = "The current time is " + time;
-        speak(finalText);
-      } else if (message.includes('date')) {
+        speak("The time is " + time + ", sir.");
+      } 
+      else if (message.includes('date')) {
         const date = new Date().toLocaleString(undefined, { month: "short", day: "numeric" });
-        const finalText = "Today's date is " + date;
-        speak(finalText);
-      } else if (message.includes('calculator')) {
-        speak("Sorry, I cannot open Calculator directly from the browser.");
-      } else {
+        speak("Today's date is " + date + ", sir.");
+      } 
+      else if (message.includes('calculator')) {
+        speak("Apologies, sir. I cannot open Calculator directly from the browser.");
+      } 
+      else {
         window.open(`https://www.google.com/search?q=${message.replace(/ /g, "+")}`, "_blank");
-        const finalText = "I found some information for " + message + " on Google";
-        speak(finalText);
+        speak("Searching Google for " + message + ", sir.");
       }
     }
   </script>
 </body>
 </html>
-
